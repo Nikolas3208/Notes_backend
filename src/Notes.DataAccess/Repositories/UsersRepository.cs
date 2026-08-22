@@ -27,9 +27,9 @@ public class UsersRepository : IUsersRepository
         return notes;
     }
 
-    public async Task<Guid> Create(Guid id, string firstName, string name, string email, string passwordHash)
+    public async Task<Guid> Create(User user)
     {
-        var userEntity = new UserEntity(id, firstName, name, email, passwordHash);
+        var userEntity = new UserEntity(user.Id, user.FirstName, user.Name, user.Email, user.PasswordHash);
 
         await _context.Users.AddAsync(userEntity);
         await _context.SaveChangesAsync();

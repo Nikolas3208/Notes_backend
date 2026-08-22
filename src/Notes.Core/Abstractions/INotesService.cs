@@ -2,7 +2,7 @@ using Notes.Core.Models;
 
 namespace Notes.Core.Abstractions;
 
-public interface INotesRepository
+public interface INotesService
 {
     Task<List<Note>> Get();
 

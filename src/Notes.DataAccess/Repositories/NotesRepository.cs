@@ -41,9 +41,9 @@ public class NotesRepository : INotesRepository
         return notes;
     }
 
-    public async Task<Guid> Create(Guid id, Guid ownerId, string title, string text, DateTime created)
+    public async Task<Guid> Create(Note note)
     {
-        var noteEntity = new NoteEntity(id, ownerId, title, text, created);
+        var noteEntity = new NoteEntity(note.Id, note.OwnerId, note.Title, note.Text, note.Created);
 
         await _context.Notes.AddAsync(noteEntity);
         await _context.SaveChangesAsync();
@@ -51,23 +51,21 @@ public class NotesRepository : INotesRepository
         return noteEntity.Id;
     }
 
-    public async Task<Guid> Update(Guid id, Guid ownerId, string title, string text, DateTime created)
+    public async Task<Guid> Update(Guid id, Guid ownerId, string title, string text)
     {
         await _context.Notes
-            .Where(n => n.Id == id)
+            .Where(n => n.Id == id && n.OwnerId == ownerId)
             .ExecuteUpdateAsync(note => note
-                .SetProperty(n => n.OwnerId, n => ownerId)
                 .SetProperty(n => n.Title, n => title)
-                .SetProperty(n => n.Text, n => text)
-                .SetProperty(n => n.Created, n => n.Created));   
+                .SetProperty(n => n.Text, n => text));
         
         return id;
     }
 
-    public async Task<Guid> Delete(Guid id)
+    public async Task<Guid> Delete(Guid id, Guid ownerId)
     {
         await _context.Notes
-            .Where(n => n.Id == id)
+            .Where(n => n.Id == id && n.OwnerId == ownerId)
             .ExecuteDeleteAsync();
 
         return id;

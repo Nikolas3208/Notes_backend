@@ -2,7 +2,7 @@ using Notes.Core.Models;
 
 namespace Notes.Core.Abstractions;
 
-public interface IUsersRepository
+public interface IUsersService
 {
     Task<List<User>> Get();
     
