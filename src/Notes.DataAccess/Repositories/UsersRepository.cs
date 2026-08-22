@@ -14,30 +14,34 @@ public class UsersRepository : IUsersRepository
         _context = context;
     }
 
-    public async Task<List<User>> Get()
+    public async Task<User?> GetByEmail(string email)
     {
-        var usersEntity = await _context.Users
+        var userEntity = await _context.Users
             .AsNoTracking()
-            .ToListAsync();
+            .FirstOrDefaultAsync(u => u.Email == email);
 
-        var notes = usersEntity
-            .Select(u => User.Create(u.Id, u.FirstName, u.Name, u.Email, u.PasswordHash).Item2)
-            .ToList();
-
-        return notes;
+        if (userEntity is null)
+            return null;
+        
+        return User.Create(
+            userEntity.Id,
+            userEntity.FirstName,
+            userEntity.Name,
+            userEntity.Email,
+            userEntity.PasswordHash).Item2;
     }
 
-    public async Task<Guid> Create(User user)
+    public async Task<string> Add(User user)
     {
         var userEntity = new UserEntity(user.Id, user.FirstName, user.Name, user.Email, user.PasswordHash);
 
         await _context.Users.AddAsync(userEntity);
         await _context.SaveChangesAsync();
 
-        return userEntity.Id;
+        return string.Empty;
     }
 
-    public async Task<Guid> Update(Guid id, string firstName, string name, string email, string passwordHash)
+    public async Task Update(Guid id, string firstName, string name, string email, string passwordHash)
     {
         await _context.Users
             .Where(u => u.Id == id)
@@ -46,16 +50,5 @@ public class UsersRepository : IUsersRepository
                 .SetProperty(u => u.Name, u => name)
                 .SetProperty(u => u.Email, u => email)
                 .SetProperty(u => u.PasswordHash, u => passwordHash));
-
-        return id;
-    }
-
-    public async Task<Guid> Delete(Guid id)
-    {
-        await _context.Users
-            .Where(u => u.Id == id)
-            .ExecuteDeleteAsync();
-        
-        return id;
     }
 }

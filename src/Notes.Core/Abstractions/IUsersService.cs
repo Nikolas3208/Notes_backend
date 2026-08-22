@@ -4,11 +4,9 @@ namespace Notes.Core.Abstractions;
 
 public interface IUsersService
 {
-    Task<List<User>> Get();
+    Task<string> Login(string email, string password);
     
-    Task<Guid> Create(User user);
+    Task<string> Register(string firstName, string lastName, string email, string password);
 
-    Task<Guid> Update(Guid id, string firstName, string name, string email, string passwordHash);
-
-    Task<Guid> Delete(Guid id);
+    Task Update(Guid id, string firstName, string name, string email, string passwordHash);
 }

@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Notes.API.Contracts;
+using Notes.API.Contracts.Note;
 using Notes.Core.Abstractions;
 using Notes.Core.Models;
 
@@ -7,6 +9,7 @@ namespace Notes.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class NoteController : ControllerBase
 {
     private readonly INotesService _notesService;
@@ -19,7 +22,12 @@ public class NoteController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<NoteResponce>>> Get()
     {
-        var notes = await _notesService.Get(new Guid("79d598f8-e927-4335-b37b-b062c0267118"));
+        var userIdClaim = User.FindFirst("userId")?.Value;
+
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+        
+        var notes = await _notesService.Get(userId);
 
         var notesResponce = notes
             .Select(n => new NoteResponce(n.Id, n.OwnerId, n.Title, n.Text, n.Created))
@@ -31,9 +39,14 @@ public class NoteController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Guid>> Create([FromBody] NoteRequest noteRequest)
     {
+        var userIdClaim = User.FindFirst("userId")?.Value;
+
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+        
         var (error, note) = Note.Create(
             Guid.NewGuid(),
-            new Guid("79d598f8-e927-4335-b37b-b062c0267118"),
+            userId,
             noteRequest.Title,
             noteRequest.Text,
             DateTime.UtcNow);
@@ -49,9 +62,12 @@ public class NoteController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<Guid>> Update(Guid id, [FromBody] NoteRequest request)
     {
-        var ownerId = new Guid("79d598f8-e927-4335-b37b-b062c0267118");
+        var userIdClaim = User.FindFirst("userId")?.Value;
+
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
         
-        var noteId = await _notesService.Update(id, ownerId, request.Title, request.Text);
+        var noteId = await _notesService.Update(id, userId, request.Title, request.Text);
 
         return Ok(noteId);
     }
@@ -59,9 +75,12 @@ public class NoteController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<Guid>> Delete(Guid id)
     {
-        var ownerId = new Guid("79d598f8-e927-4335-b37b-b062c0267118");
+        var userIdClaim = User.FindFirst("userId")?.Value;
+
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
         
-        var noteId = await _notesService.Delete(id, ownerId);
+        var noteId = await _notesService.Delete(id, userId);
 
         return Ok(id);
     }

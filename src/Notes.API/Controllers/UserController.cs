@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Notes.API.Contracts;
+using Notes.API.Contracts.User;
 using Notes.Core.Abstractions;
-using Notes.Core.Models;
 
 namespace Notes.API.Controllers;
 
@@ -18,49 +17,48 @@ public class UserController : ControllerBase
         _passwordHasher = passwordHasher;
     }
 
-    [HttpGet]
-    public async Task<ActionResult<List<UserResponce>>> Get()
+    [HttpPost("login")]
+    public async Task<ActionResult<string>> Login([FromBody] LoginUserRequest loginUser)
     {
-        var users = await _usersService.Get();
-
-        var usersResponce = users
-            .Select(u => new UserResponce(u.Id, u.FirstName, u.Name, u.Email))
-            .ToList();
-
-        return Ok(usersResponce);
-    }
-
-    [HttpPost]
-    public async Task<ActionResult<Guid>> Create([FromBody] UserRequest request)
-    {
-        var passwordHash = _passwordHasher.Generate(request.Password);
+        string token = await _usersService.Login(loginUser.Email, loginUser.Password);
         
-        var (error, user) =
-            Core.Models.User.Create(Guid.NewGuid(), request.FirstName, request.Name, request.Email, passwordHash);
+        HttpContext.Response.Cookies.Append("jwt-token", token);
+        
+        return Ok(token);
+    }
+    
+    [HttpPost("register")]
+    public async Task<ActionResult> Register([FromBody] RegisterUserRequest registerUser)
+    {
+        string error = await _usersService.Register(
+            registerUser.FirstName,
+            registerUser.LastName,
+            registerUser.Email,
+            registerUser.Password);
 
-        if (!string.IsNullOrEmpty(error))
-            return BadRequest(error);
-
-        var id = await _usersService.Create(user);
-
-        return Ok(id);
+        return Ok();
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Guid>> Update(Guid id, [FromBody] UserRequest request)
+    public async Task<ActionResult> Update(Guid id, [FromBody] UpdateUserRequest request)
     {
+        var userIdClaim = User.FindFirst("userId")?.Value;
+
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        if (!id.Equals(userId))
+            return Unauthorized();
+        
         var passwordHash = _passwordHasher.Generate(request.Password);
 
-        var userId = await _usersService.Update(id, request.FirstName, request.Name, request.Email, passwordHash);
+        await _usersService.Update(
+            id,
+            request.FirstName,
+            request.LastName,
+            request.Email,
+            passwordHash);
 
-        return Ok(userId);
-    }
-
-    [HttpDelete("{id:guid}")]
-    public async Task<ActionResult<Guid>> Delete(Guid id)
-    {
-        var userId = await _usersService.Delete(id);
-
-        return userId;
+        return Ok();
     }
 }

@@ -1,4 +1,4 @@
-namespace Notes.API.Contracts;
+namespace Notes.API.Contracts.Note;
 
 public record NoteResponce(
     Guid Id,
