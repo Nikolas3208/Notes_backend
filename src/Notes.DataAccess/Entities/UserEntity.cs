@@ -6,7 +6,7 @@ public class UserEntity
 
     public string FirstName { get; set; } = string.Empty;
 
-    public string Name { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
 
     public string Email { get; set; } = string.Empty;
 
@@ -17,11 +17,11 @@ public class UserEntity
         
     }
 
-    public UserEntity(Guid id, string firstName, string name, string email, string passwordHash)
+    public UserEntity(Guid id, string firstName, string lastName, string email, string passwordHash)
     {
         Id = id;
         FirstName = firstName;
-        Name = name;
+        LastName = lastName;
         Email = email;
         PasswordHash = passwordHash;
     }

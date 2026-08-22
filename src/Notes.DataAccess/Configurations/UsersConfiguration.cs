@@ -15,8 +15,8 @@ public class UsersConfiguration : IEntityTypeConfiguration<UserEntity>
             .HasMaxLength(User.MaxFirstNameLength)
             .IsRequired();
 
-        builder.Property(u => u.Name)
-            .HasMaxLength(User.MaxNameLength)
+        builder.Property(u => u.LastName)
+            .HasMaxLength(User.MaxLastNameLength)
             .IsRequired();
 
         builder.Property(u => u.Email)

@@ -26,14 +26,14 @@ public class UsersRepository : IUsersRepository
         return User.Create(
             userEntity.Id,
             userEntity.FirstName,
-            userEntity.Name,
+            userEntity.LastName,
             userEntity.Email,
             userEntity.PasswordHash).Item2;
     }
 
     public async Task<string> Add(User user)
     {
-        var userEntity = new UserEntity(user.Id, user.FirstName, user.Name, user.Email, user.PasswordHash);
+        var userEntity = new UserEntity(user.Id, user.FirstName, user.LastName, user.Email, user.PasswordHash);
 
         await _context.Users.AddAsync(userEntity);
         await _context.SaveChangesAsync();
@@ -41,13 +41,13 @@ public class UsersRepository : IUsersRepository
         return string.Empty;
     }
 
-    public async Task Update(Guid id, string firstName, string name, string email, string passwordHash)
+    public async Task Update(Guid id, string firstName, string lastName, string email, string passwordHash)
     {
         await _context.Users
             .Where(u => u.Id == id)
             .ExecuteUpdateAsync(user => user
                 .SetProperty(u => u.FirstName, u => firstName)
-                .SetProperty(u => u.Name, u => name)
+                .SetProperty(u => u.LastName, u => lastName)
                 .SetProperty(u => u.Email, u => email)
                 .SetProperty(u => u.PasswordHash, u => passwordHash));
     }
